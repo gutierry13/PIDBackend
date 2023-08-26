@@ -1,6 +1,7 @@
 import AdocaoBD from '../Persistencia/adocaoBD.js';
 
 export default class Adocao {
+  #codigo;
   #cpfCliente;
   #codigoAnimal;
   #data;
@@ -8,7 +9,8 @@ export default class Adocao {
   #status;
   #documentos;
 
-  constructor(cpfCliente, codigoAnimal, data, termos, status, documentos) {
+  constructor(codigo,cpfCliente, codigoAnimal, data, termos, status, documentos) {
+    this.#codigo = codigo
     this.#cpfCliente = cpfCliente;
     this.#codigoAnimal = codigoAnimal;
     this.#data = data;
@@ -16,7 +18,12 @@ export default class Adocao {
     this.#status = status;
     this.#documentos = documentos;
   }
-
+  get codigo() {
+    return this.#codigo
+  }
+  set codigo(novoCodigo) {
+    this.#codigo = novoCodigo
+  }
   get cpfCliente() {
     return this.#cpfCliente;
   }
@@ -61,6 +68,7 @@ export default class Adocao {
 
   toJSON() {
     return {
+      codigo: this.#codigo,
       cpfCliente: this.#cpfCliente,
       codigoAnimal: this.#codigoAnimal,
       data: this.#data,
