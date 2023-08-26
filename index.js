@@ -11,6 +11,6 @@ server.use(express.json())
 server.use('/clientes', clienteRota)
 server.use('/animais', animalRota)
 server.use('/adocoes', adocaoRota)
-server.listen(3001, 'localhost', () => {
-  console.log('Backend rodando em http://localhost:3001')
+server.listen(4003, 'localhost', () => {
+  console.log('Backend rodando em http://localhost:4003')
 })
