@@ -8,7 +8,7 @@ export default async function conectar() {
     host: 'localhost',
     user: 'aluno3-pfsii',
     port: 3306,
-    password: 'njTMBR4Y01wcxju01OxV',
+    password: 'aluno3-pfsii',
     database: 'backend'
   })
   global.conexao = conexao
