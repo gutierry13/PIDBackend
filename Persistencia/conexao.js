@@ -9,7 +9,14 @@ export default async function conectar() {
     user: 'aluno3-pfsii',
     port: 3306,
     password: 'njTMBR4Y01wcxju01OxV',
-    database: 'backend'
+    database: 'backend',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    maxIdle: 10,
+    idleTimeout: 60000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0
   })
   global.conexao = conexao
   return conexao
