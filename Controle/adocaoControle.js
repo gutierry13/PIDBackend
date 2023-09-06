@@ -63,8 +63,7 @@ export default class AdocaoControle {
         codigoAnimal &&
         data &&
         termos &&
-        status &&
-        documentos
+        status
       ) {
         const adocao = new Adocao(
           codigo,
