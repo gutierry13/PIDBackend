@@ -1,25 +1,28 @@
-import Adocao from '../Modelo/adocao.js';
-import conectar from './conexao.js';
+import Adocao from "../Modelo/adocao.js";
+import conectar from "./conexao.js";
 
 export default class AdocaoBD {
   async consultar(termo) {
     const conexao = await conectar();
-    const sql = 'SELECT * FROM adocoes WHERE cpfCliente LIKE ? ORDER BY data ASC';
-    const valores = ['%' + termo + '%'];
+    const sql =
+      "SELECT * FROM adocoes WHERE cpfCliente LIKE ? ORDER BY data ASC";
+    const valores = ["%" + termo + "%"];
     const [rows] = await conexao.query(sql, valores);
+    global.poolConexoes.releaseConnection(conexao);
     const listaAdocoes = [];
     for (let row of rows) {
       const adocao = new Adocao(
-        row['codigo'],
-        row['cpfCliente'],
-        row['codigoAnimal'],
-        row['data'],
-        row['termos'],
-        row['status'],
-        row['documentos']
+        row["codigo"],
+        row["cpfCliente"],
+        row["codigoAnimal"],
+        row["data"],
+        row["termos"],
+        row["status"],
+        row["documentos"]
       );
       listaAdocoes.push(adocao);
     }
+
     return listaAdocoes;
   }
 
@@ -34,19 +37,21 @@ export default class AdocaoBD {
 
     const valores = [value];
     const [rows] = await conexao.query(sql, valores);
+    global.poolConexoes.releaseConnection(conexao);
     const listaAdocoes = [];
     for (let row of rows) {
       const adocao = new Adocao(
-        row['codigo'],
-        row['cpfCliente'],
-        row['codigoAnimal'],
-        row['data'],
-        row['termos'],
-        row['status'],
-        row['documentos']
+        row["codigo"],
+        row["cpfCliente"],
+        row["codigoAnimal"],
+        row["data"],
+        row["termos"],
+        row["status"],
+        row["documentos"]
       );
       listaAdocoes.push(adocao);
     }
+
     return listaAdocoes;
   }
 
@@ -54,7 +59,7 @@ export default class AdocaoBD {
     if (adocao instanceof Adocao) {
       const conexao = await conectar();
       const sql =
-        'INSERT INTO adocoes(codigo,cpfCliente, codigoAnimal, data, termos, status, documentos) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        "INSERT INTO adocoes(codigo,cpfCliente, codigoAnimal, data, termos, status, documentos) VALUES (?, ?, ?, ?, ?, ?, ?)";
       const valores = [
         adocao.codigo,
         adocao.cpfCliente,
@@ -62,11 +67,12 @@ export default class AdocaoBD {
         adocao.data,
         adocao.termos,
         adocao.status,
-        adocao.documentos
+        adocao.documentos,
       ];
-      console.log('Valores:', valores);
-      console.log('SQL:', sql);
+      console.log("Valores:", valores);
+      console.log("SQL:", sql);
       await conexao.query(sql, valores);
+      global.poolConexoes.releaseConnection(conexao);
     }
   }
 
@@ -74,7 +80,7 @@ export default class AdocaoBD {
     if (adocao instanceof Adocao) {
       const conexao = await conectar();
       const sql =
-        'UPDATE adocoes SET data = ?, termos = ?, status = ?, documentos = ? , cpfCliente = ?, codigoAnimal = ? WHERE codigo = ?';
+        "UPDATE adocoes SET data = ?, termos = ?, status = ?, documentos = ? , cpfCliente = ?, codigoAnimal = ? WHERE codigo = ?";
 
       const valores = [
         adocao.data,
@@ -83,20 +89,22 @@ export default class AdocaoBD {
         adocao.documentos,
         adocao.cpfCliente,
         adocao.codigoAnimal,
-        adocao.codigo
+        adocao.codigo,
       ];
-      console.log('Valores:', valores);
-      console.log('SQL:', sql);
+      console.log("Valores:", valores);
+      console.log("SQL:", sql);
       await conexao.query(sql, valores);
+      global.poolConexoes.releaseConnection(conexao);
     }
   }
 
   async excluir(adocao) {
     if (adocao instanceof Adocao) {
       const conexao = await conectar();
-      const sql = 'DELETE FROM adocoes WHERE codigo = ?';
+      const sql = "DELETE FROM adocoes WHERE codigo = ?";
       const valores = [adocao.codigo];
       await conexao.query(sql, valores);
+      global.poolConexoes.releaseConnection(conexao);
     }
   }
 }

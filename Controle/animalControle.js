@@ -1,11 +1,15 @@
-import Animal from '../Modelo/animal.js'
-import { v4 as uuidV4 } from 'uuid'
+import Animal from "../Modelo/animal.js";
+import { v4 as uuidV4 } from "uuid";
+import Especie from "../Modelo/especie.js";
 export default class AnimalControle {
   gravar(req, res) {
-    res.type('application/json')
-    if (req.method === 'POST' && req.is('application/json')) {
+    res.type("application/json");
+    if (req.method === "POST" && req.is("application/json")) {
       let { nome, raca, especie, sexo, peso, idade, cor, porte, saude } =
-        req.body
+        req.body;
+      const { codigo } = especie;
+      const especieConstrutor = new Especie("", "").consultarCodigo(codigo);
+      console.log(especieConstrutor);
       if (
         nome &&
         raca &&
@@ -17,9 +21,9 @@ export default class AnimalControle {
         porte &&
         saude
       ) {
-        const codigo = uuidV4().slice(0, 16)
+        const codigoUUID = uuidV4().slice(0, 16);
         const animal = new Animal(
-          codigo,
+          codigoUUID,
           nome,
           raca,
           especie,
@@ -29,38 +33,45 @@ export default class AnimalControle {
           cor,
           porte,
           saude
-        )
+        );
         animal
           .gravar()
           .then(() => {
-            res.status(200).json({
-              status: true,
-              mensagem: 'Animal gravado com sucesso!'
-            })
+            if (especieConstrutor) {
+              res.status(200).json({
+                status: true,
+                mensagem: "Animal gravado com sucesso!",
+              });
+            } else {
+              res.json({
+                status: false,
+                mensagem: "Especie inexistente",
+              });
+            }
           })
           .catch((erro) => {
             res.status(500).json({
               status: false,
-              mensagem: erro.message
-            })
-          })
+              mensagem: erro.message,
+            });
+          });
       } else {
         res.status(400).json({
           status: false,
-          mensagem: 'Informe adequadamente os dados do animal'
-        })
+          mensagem: "Informe adequadamente os dados do animal",
+        });
       }
     } else {
       res.status(400).json({
         status: false,
-        mensagem: 'Método não permitido ou animal fora do formato JSON'
-      })
+        mensagem: "Método não permitido ou animal fora do formato JSON",
+      });
     }
   }
 
   atualizar(req, res) {
-    res.type('application/json')
-    if (req.method === 'PUT' && req.is('application/json')) {
+    res.type("application/json");
+    if (req.method === "PUT" && req.is("application/json")) {
       const {
         codigo,
         nome,
@@ -71,8 +82,12 @@ export default class AnimalControle {
         idade,
         cor,
         porte,
-        saude
-      } = req.body
+        saude,
+      } = req.body;
+      const codigoEspecie = especie.codigo;
+      const especieConstrutor = new Especie("", "").consultarCodigo(
+        codigoEspecie
+      );
       if (
         codigo &&
         nome &&
@@ -96,113 +111,120 @@ export default class AnimalControle {
           cor,
           porte,
           saude
-        )
+        );
         animal
           .atualizar()
           .then(() => {
-            res.status(200).json({
-              status: true,
-              mensagem: 'Animal atualizado com sucesso!'
-            })
+            if (especieConstrutor) {
+              res.status(200).json({
+                status: true,
+                mensagem: "Animal atualizado com sucesso!",
+              });
+            } else {
+              res.json({
+                status: false,
+                mensagem: "Especie inexistente",
+              });
+            }
           })
           .catch((erro) => {
             res.status(500).json({
               status: false,
-              mensagem: erro.message
-            })
-          })
+              mensagem: erro.message,
+            });
+          });
       } else {
         res.status(400).json({
           status: false,
-          mensagem: 'Informe adequadamente os dados do animal'
-        })
+          mensagem: "Informe adequadamente os dados do animal",
+        });
       }
     } else {
       res.status(400).json({
         status: false,
-        mensagem: 'Método não permitido ou animal fora do formato JSON'
-      })
+        mensagem: "Método não permitido ou animal fora do formato JSON",
+      });
     }
   }
 
   remover(req, res) {
-    res.type('application/json')
-    if (req.method === 'DELETE' && req.is('application/json')) {
-      const codigo = req.body.codigo
+    res.type("application/json");
+    if (req.method === "DELETE" && req.is("application/json")) {
+      const codigo = req.body.codigo;
       if (codigo) {
-        const animal = new Animal(codigo)
+        const animal = new Animal(codigo);
         animal
           .remover()
           .then(() => {
             res.status(200).json({
               status: true,
-              mensagem: 'Animal removido com sucesso!'
-            })
+              mensagem: "Animal removido com sucesso!",
+            });
           })
           .catch((erro) => {
             res.status(500).json({
               status: false,
-              mensagem: erro.message
-            })
-          })
+              mensagem: erro.message,
+            });
+          });
       } else {
         res.status(400).json({
           status: false,
-          mensagem: 'Informe o código do animal'
-        })
+          mensagem: "Informe o código do animal",
+        });
       }
     } else {
       res.status(400).json({
         status: false,
-        mensagem: 'Método não permitido ou animal fora do formato JSON'
-      })
+        mensagem: "Método não permitido ou animal fora do formato JSON",
+      });
     }
   }
 
   consultar(req, res) {
-    res.type('application/json')
-    if (req.method === 'GET') {
-      const animal = new Animal('', '', '', '', '', '', '', '', '', '')
+    res.type("application/json");
+    if (req.method === "GET") {
+      const animal = new Animal("", "", "", "", "", "", "", "", "", "");
       animal
-        .consultar('')
+        .consultar("")
         .then((animais) => {
-          res.status(200).json(animais)
+          res.status(200).json(animais);
         })
         .catch((erro) => {
           res.status(500).json({
             status: false,
-            mensagem: erro.message
-          })
-        })
+            mensagem: erro.message,
+          });
+        });
     } else {
       res.status(400).json({
         status: false,
-        mensagem: 'Método não permitido'
-      })
+        mensagem: "Método não permitido",
+      });
     }
   }
 
   consultarPeloCodigo(req, res) {
-    res.type('application/json')
-    const codigo = req.params['codigo']
-    if (req.method === 'GET') {
-      const animal = new Animal('', '', '', '', '', '', '', '', '', '')
+    res.type("application/json");
+    const codigo = req.params["codigo"];
+    if (req.method === "GET") {
+      const animal = new Animal("", "", "", "", "", "", "", "", "", "");
       animal
         .consultarCodigo(codigo)
         .then((animal) => {
-          res.status(200).json(animal)
+          res.status(200).json(animal);
         })
         .catch((erro) => {
           res.status(500).json({
             status: false,
-            mensagem: erro.message
-          })
-        })
+            mensagem: erro.message,
+          });
+        });
     } else {
       res.status(400).json({
         status: false,
-        mensagem: 'Método não permitido'
-      })
+        mensagem: "Método não permitido",
+      });
     }
   }
 }

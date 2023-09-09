@@ -1,10 +1,16 @@
 import mysql from "mysql2/promise";
 
 export default async function conectar() {
-  if (global.conexao && global.conexao.status != "disconnected") {
-    return global.conexao;
+  if (global.poolConexoes) {
+    return await global.poolConexoes.getConnection();
   }
-  const conexao = await mysql.createConnection({
+  const poolConexoes = mysql.createPool({
+    // host: "localhost",
+    // user: "root",
+    // password: "",
+    // database: "backend",
+    // port: 3306,
+    //-- Production
     host: "localhost",
     user: "aluno3-pfsii",
     password: "njTMBR4Y01wcxju01OxV",
@@ -18,6 +24,6 @@ export default async function conectar() {
     enableKeepAlive: true,
     keepAliveInitialDelay: 0,
   });
-  global.conexao = conexao;
-  return conexao;
+  global.poolConexoes = poolConexoes;
+  return await poolConexoes.getConnection();
 }
