@@ -4,6 +4,8 @@ import cors from "cors";
 import animalRota from "./Rotas/animalRota.js";
 import adocaoRota from "./Rotas/adocaoRota.js";
 import especieRota from "./Rotas/especieRota.js";
+import consultaRota from "./Rotas/consultaRota.js";
+import funcionarioRota from "./Rotas/funcionarioRota.js";
 const server = new express();
 const hostname = "0.0.0.0";
 // const hostname = "localhost";
@@ -15,6 +17,8 @@ server.use("/clientes", clienteRota);
 server.use("/animais", animalRota);
 server.use("/adocoes", adocaoRota);
 server.use("/especie", especieRota);
+server.use("/funcionarios", funcionarioRota);
+server.use("/consultas", consultaRota);
 server.listen(port, hostname, () => {
   console.log(`Backend rodando em http://${hostname}:${port}`);
 });
