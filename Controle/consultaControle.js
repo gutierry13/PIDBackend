@@ -2,6 +2,7 @@ import Consulta from "../Modelo/consulta.js";
 import { v4 as uuidV4 } from "uuid";
 import Funcionario from "../Modelo/funcionario.js";
 import Cliente from "../Modelo/cliente.js";
+import Animal from "../Modelo/animal.js";
 import funcionarioConsulta from "../Modelo/funcionarioConsulta.js";
 export default class ConsultaControle {
   // gravar(req, res) {
@@ -76,42 +77,56 @@ export default class ConsultaControle {
       const dados = req.body;
       const consultaCod = uuidV4().slice(0, 16);
       // const funcionario = new Funcionario(dados.funcionarioCPF.cpf);
-      // const cliente = new Cliente(dados.clienteCPF.cpf);
+
+      const cliente = new Cliente(
+        dados.clienteCPF.cpf,
+        dados.clienteCPF.nome,
+        dados.clienteCPF.dtNascimento,
+        dados.clienteCPF.email,
+        dados.clienteCPF.telefone,
+        dados.clienteCPF.ocupacao,
+        dados.clienteCPF.sexo,
+        dados.clienteCPF.estadoCivil,
+        dados.clienteCPF.cep
+      );
+
+      const animal = new Animal(dados.animalID);
       const funcionarios = dados.funcionarioCPF;
       let listaFuncionarios = [];
-      for (const func in funcionarios) {
-        // const cliente = new Cliente(
-        //   dados.clienteCPF.cpf,
-        //   dados.clienteCPF.nome,
-        //   dados.clienteCPF.dtNascimento,
-        //   dados.clienteCPF.email,
-        //   dados.clienteCPF.telefone,
-        //   dados.clienteCPF.ocupacao,
-        //   dados.clienteCPF.sexo,
-        //   dados.clienteCPF.estadoCivil,
-        //   dados.clienteCPF.cep
-        // );
-        // const funcionario = new Funcionario(
-        //   dados.funcionarioCPF.cpf,
-        //   dados.funcionarioCPF.nome,
-        //   dados.funcionarioCPF.dataNascimento,
-        //   dados.funcionarioCPF.funcao,
-        //   dados.funcionarioCPF.setor,
-        //   dados.funcionarioCPF.email,
-        //   dados.funcionarioCPF.telefone,
-        //   dados.funcionarioCPF.ocupacao,
-        //   dados.funcionarioCPF.estadoCivil,
-        //   dados.funcionarioCPF.cep,
-        //   dados.funcionarioCPF.dataContratacao,
-        //   dados.funcionarioCPF.sexo
-        // );
-        const funcConsulta = new funcionarioConsulta(
-          dados.funcionarioCPF,
-          consultaCod
+      for (let func of funcionarios) {
+        const funcionario = new Funcionario(
+          func.cpf,
+          func.nome,
+          func.dataNascimento,
+          func.funcao,
+          func.setor,
+          func.email,
+          func.telefone,
+          func.ocupacao,
+          func.estadoCivil,
+          func.cep,
+          func.dataContratacao,
+          func.sexo
         );
+
+        // const funcConsulta = new funcionarioConsulta(
+        //   dados.funcionarioCPF[Number(func)].cpf,
+        //   consultaCod
+        // );
         listaFuncionarios.push(funcionario);
       }
-      const consulta = new Consulta(consultaCod, cliente, listaFuncionarios);
+      const consulta = new Consulta(
+        consultaCod,
+        animal.codigo,
+        cliente,
+        listaFuncionarios,
+        dados.data,
+        dados.motivo,
+        dados.diagnostico,
+        dados.medicamento,
+        dados.tratamento,
+        dados.observacao
+      );
       consulta
         .gravar()
         .then(() => {

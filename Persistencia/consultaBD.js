@@ -185,8 +185,8 @@ export default class ConsultaBD {
         const valores = [
           consulta.codigo,
           consulta.animalID,
-          consulta.clienteCPF,
-          consulta.funcionarioCPF,
+          consulta.clienteCPF.cpf,
+          consulta.funcionarioCPF[0].cpf,
           consulta.data,
           consulta.motivo,
           consulta.diagnostico,
@@ -195,9 +195,9 @@ export default class ConsultaBD {
           consulta.observacao,
         ];
         await conexao.query(sql, valores);
-        for (const funcionario of consulta.funcionarioCPF) {
+        for (let funcionario of consulta.funcionarioCPF) {
           const sql2 =
-            "insert into funcionario_consulta(funcionarioCpf,consultaCodigo) values(?,?)";
+            "insert into funcionario_consulta(funcionarioCpf,consultaCodgio) values(?,?)";
           const parametros = [funcionario.cpf, consulta.codigo];
           await conexao.query(sql2, parametros);
         }
