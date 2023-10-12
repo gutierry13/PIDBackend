@@ -34,6 +34,7 @@ export default class ConsultaBD {
     const sql = `SELECT * FROM consultas as con inner join clientes as cli on cli.cpf = con.clienteCPF;
    `;
     const listaConsultas = [];
+    let listaFuncionarios = [];
     const [rows] = await conexao.query(sql);
     for (const consu of rows) {
       const cliente = new Cliente(
@@ -51,7 +52,7 @@ export default class ConsultaBD {
         rows[0]["codigo"],
         rows[0]["animalID"],
         cliente,
-        rows[0]["funcionarioCPF"],
+        listaFuncionarios,
         rows[0]["data"],
         rows[0]["motivo"],
         rows[0]["diagnostico"],
@@ -60,30 +61,31 @@ export default class ConsultaBD {
         rows[0]["observacao"],
         []
       );
-      const sqlItems = `SELECT * FROM consultas as con INNER JOIN animais as ani INNER JOIN funcionarios as fun INNER JOIN funcionario_consulta as funcon on con.codigo = funcon.consultaCodgio and fun.cpf = con.funcionarioCPF and ani.codigo = con.animalID
+      const sqlItems = `SELECT * FROM consultas as con INNER JOIN animais as ani INNER JOIN funcionarios as fun INNER JOIN funcionario_consulta as funcon on con.codigo = funcon.consultaCodgio and fun.cpf = funcon.funcionarioCpf and ani.codigo = con.animalID 
       where con.codigo = ?
     `;
+      //
       const parametros = [consu["codigo"]];
-      let listaFuncionarios = [];
       const [funcForCons] = await conexao.query(sqlItems, parametros);
-      for (const funci of funcForCons) {
+      for (const funci in funcForCons) {
         listaFuncionarios.push(
           new Funcionario(
-            funcForCons[0]["cpf"],
-            funcForCons[0]["nome"],
-            funcForCons[0]["dataNascimento"],
-            funcForCons[0]["funcao"],
-            funcForCons[0]["setor"],
-            funcForCons[0]["email"],
-            funcForCons[0]["telefone"],
-            funcForCons[0]["ocupacao"],
-            funcForCons[0]["estadoCivil"],
-            funcForCons[0]["cep"],
-            funcForCons[0]["dataContratacao"],
-            funcForCons[0]["sexo"]
+            funcForCons[funci]["cpf"],
+            funcForCons[funci]["nome"],
+            funcForCons[funci]["dataNascimento"],
+            funcForCons[funci]["funcao"],
+            funcForCons[funci]["setor"],
+            funcForCons[funci]["email"],
+            funcForCons[funci]["telefone"],
+            funcForCons[funci]["ocupacao"],
+            funcForCons[funci]["estadoCivil"],
+            funcForCons[funci]["cep"],
+            funcForCons[funci]["dataContratacao"],
+            funcForCons[funci]["sexo"]
           )
         );
       }
+      console.log(listaFuncionarios);
       consulta.funcionarioCPF = listaFuncionarios;
       listaConsultas.push(consulta);
     }
@@ -195,6 +197,7 @@ export default class ConsultaBD {
           consulta.observacao,
         ];
         await conexao.query(sql, valores);
+
         for (let funcionario of consulta.funcionarioCPF) {
           const sql2 =
             "insert into funcionario_consulta(funcionarioCpf,consultaCodgio) values(?,?)";
@@ -261,9 +264,16 @@ export default class ConsultaBD {
       return null; // Consulta não encontrada
     }
   }
-  async atualizar(consulta) {
+  async alterar(consulta) {
+    const conexao = await conectar();
     if (consulta instanceof Consulta) {
-      const conexao = await conectar();
+      for (let funcionario of consulta.funcionarioCPF) {
+        const sql2 =
+          "insert into funcionario_consulta(funcionarioCpf,consultaCodgio) values(?,?)";
+        const parametros = [funcionario.cpf, consulta.codigo];
+        await conexao.query(sql2, parametros);
+      }
+
       const sql =
         "UPDATE consultas SET animalID=?,clienteCPF=?,funcionarioCPF=?,data=?,motivo=?,diagnostico=?,medicamento=?,tratamento=?,observacao=? WHERE codigo=?";
       const valores = [
