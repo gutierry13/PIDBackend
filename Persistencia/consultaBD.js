@@ -2,6 +2,8 @@ import Consulta from "../Modelo/consulta.js";
 import conectar from "./conexao.js";
 import Cliente from "../Modelo/cliente.js";
 import Funcionario from "../Modelo/funcionario.js";
+import Animal from "../Modelo/animal.js";
+import Especie from "../Modelo/especie.js";
 export default class ConsultaBD {
   // async consultar(termo) {
   //   const conexao = await conectar();
@@ -31,26 +33,53 @@ export default class ConsultaBD {
   // }
   async consultar() {
     const conexao = await conectar();
-    const sql = `SELECT * FROM consultas as con inner join clientes as cli on cli.cpf = con.clienteCPF;
+    const sql = `SELECT *, 
+                  cli.nome AS nome_cliente,
+                  cli.sexo AS sexo_cliente, 
+                  ani.nome AS nome_animal, 
+                  ani.sexo AS sexo_animal, 
+                  esp.nome AS nome_especie
+
+              FROM consultas AS con 
+              INNER JOIN clientes AS cli ON con.clienteCPF = cli.cpf
+              INNER JOIN animais AS ani ON con.animalID = ani.codigo
+              INNER JOIN especie AS esp ON ani.especie = esp.codigo;
    `;
+    //   const sql = `SELECT * FROM consultas as con inner join clientes as cli inner join animais as ani inner join especie as esp on ani.especie = esp.codigo and cli.cpf = con.clienteCPF ;;
+    //  `;
+    // const sqlAnimal =
+    //   "select * from animais as ani inner join especie as esp on ani.especie = esp.codigo";
     const listaConsultas = [];
     let listaFuncionarios = [];
     const [rows] = await conexao.query(sql);
     for (const consu of rows) {
       const cliente = new Cliente(
         rows[0]["cpf"],
-        rows[0]["nome"],
+        rows[0]["nome_cliente"],
         rows[0]["dtNascimento"],
         rows[0]["email"],
         rows[0]["telefone"],
         rows[0]["ocupacao"],
-        rows[0]["sexo"],
+        rows[0]["sexo_cliente"],
         rows[0]["estadoCivil"],
         rows[0]["cep"]
       );
+      const especie = new Especie(rows[0]["codigo"], rows[0]["nome_especie"]);
+      const animal = new Animal(
+        rows[0]["animalID"],
+        rows[0]["nome_animal"],
+        rows[0]["raca"],
+        especie,
+        rows[0]["sexo_animal"],
+        rows[0]["peso"],
+        rows[0]["idade"],
+        rows[0]["cor"],
+        rows[0]["porte"],
+        rows[0]["saude"]
+      );
       const consulta = new Consulta(
         rows[0]["codigo"],
-        rows[0]["animalID"],
+        animal,
         cliente,
         listaFuncionarios,
         rows[0]["data"],
@@ -61,9 +90,16 @@ export default class ConsultaBD {
         rows[0]["observacao"],
         []
       );
-      const sqlItems = `SELECT * FROM consultas as con INNER JOIN animais as ani INNER JOIN funcionarios as fun INNER JOIN funcionario_consulta as funcon on con.codigo = funcon.consultaCodgio and fun.cpf = funcon.funcionarioCpf and ani.codigo = con.animalID 
-      where con.codigo = ?
+      const sqlItems = `SELECT *,
+      con.codigo as consulta_codigo
+      from consultas as con
+      inner join funcionarios as fun
+      inner join funcionario_consulta as funcon
+      on con.codigo = funcon.consultaCodgio and fun.cpf = funcon.funcionarioCpf 
     `;
+      //   const sqlItems = `SELECT * FROM consultas as con INNER JOIN funcionarios as fun INNER JOIN funcionario_consulta as funcon on con.codigo = funcon.consultaCodgio and fun.cpf = funcon.funcionarioCpf
+      //   where con.codigo = ?
+      // `;
       //
       const parametros = [consu["codigo"]];
       const [funcForCons] = await conexao.query(sqlItems, parametros);
