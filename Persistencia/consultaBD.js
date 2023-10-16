@@ -33,69 +33,90 @@ export default class ConsultaBD {
   // }
   async consultar() {
     const conexao = await conectar();
-    const sql = `SELECT *, 
-                  cli.nome AS nome_cliente,
-                  cli.sexo AS sexo_cliente, 
-                  ani.nome AS nome_animal, 
-                  ani.sexo AS sexo_animal, 
-                  esp.nome AS nome_especie
-
-              FROM consultas AS con 
-              INNER JOIN clientes AS cli ON con.clienteCPF = cli.cpf
-              INNER JOIN animais AS ani ON con.animalID = ani.codigo
-              INNER JOIN especie AS esp ON ani.especie = esp.codigo;
+    const sql = `SELECT
+    con.*, 
+    cli.nome AS nome_cliente,
+    cli.cep AS cep,
+    cli.cpf AS cpf,
+    cli.dtNascimento AS dtNascimento,
+    cli.email AS email,
+    cli.telefone AS telefone,
+    cli.ocupacao AS ocupacao,
+    cli.sexo AS sexo_cliente, 
+    cli.estadoCivil AS estadoCivil, 
+    ani.codigo AS codigo_animal, 
+    ani.nome AS nome_animal, 
+    ani.raca AS raca, 
+    ani.especie AS especie, 
+    ani.sexo AS sexo_animal, 
+    ani.peso AS peso, 
+    ani.idade AS idade, 
+    ani.cor AS cor, 
+    ani.porte AS porte, 
+    ani.saude AS saude, 
+    esp.nome AS nome_especie,
+    esp.codigo AS especie_codigo
+FROM consultas AS con 
+INNER JOIN clientes AS cli 
+INNER JOIN animais AS ani 
+INNER JOIN especie AS esp ON ani.especie = esp.codigo and con.clienteCPF = cli.cpf and con.animalID = ani.codigo
    `;
+    //  SELECT *,
+    //                 cli.nome AS nome_cliente,
+    //                 cli.sexo AS sexo_cliente,
+    //                 ani.nome AS nome_animal,
+    //                 ani.sexo AS sexo_animal,
+    //                 esp.nome AS nome_especie
+    //             FROM consultas AS con
+    //             INNER JOIN clientes AS cli ON con.clienteCPF = cli.cpf
+    //             INNER JOIN animais AS ani ON con.animalID = ani.codigo
+    //             INNER JOIN especie AS esp ON ani.especie = esp.codigo;
     //   const sql = `SELECT * FROM consultas as con inner join clientes as cli inner join animais as ani inner join especie as esp on ani.especie = esp.codigo and cli.cpf = con.clienteCPF ;;
     //  `;
     // const sqlAnimal =
     //   "select * from animais as ani inner join especie as esp on ani.especie = esp.codigo";
     const listaConsultas = [];
-    let listaFuncionarios = [];
     const [rows] = await conexao.query(sql);
     for (const consu of rows) {
+      let listaFuncionarios = [];
       const cliente = new Cliente(
-        rows[0]["cpf"],
-        rows[0]["nome_cliente"],
-        rows[0]["dtNascimento"],
-        rows[0]["email"],
-        rows[0]["telefone"],
-        rows[0]["ocupacao"],
-        rows[0]["sexo_cliente"],
-        rows[0]["estadoCivil"],
-        rows[0]["cep"]
+        consu["cpf"],
+        consu["nome_cliente"],
+        consu["dtNascimento"],
+        consu["email"],
+        consu["telefone"],
+        consu["ocupacao"],
+        consu["sexo_cliente"],
+        consu["estadoCivil"],
+        consu["cep"]
       );
-      const especie = new Especie(rows[0]["codigo"], rows[0]["nome_especie"]);
+      const especie = new Especie(consu["codigo"], consu["nome_especie"]);
       const animal = new Animal(
-        rows[0]["animalID"],
-        rows[0]["nome_animal"],
-        rows[0]["raca"],
+        consu["animalID"],
+        consu["nome_animal"],
+        consu["raca"],
         especie,
-        rows[0]["sexo_animal"],
-        rows[0]["peso"],
-        rows[0]["idade"],
-        rows[0]["cor"],
-        rows[0]["porte"],
-        rows[0]["saude"]
+        consu["sexo_animal"],
+        consu["peso"],
+        consu["idade"],
+        consu["cor"],
+        consu["porte"],
+        consu["saude"]
       );
       const consulta = new Consulta(
-        rows[0]["codigo"],
+        consu["codigo"],
         animal,
         cliente,
         listaFuncionarios,
-        rows[0]["data"],
-        rows[0]["motivo"],
-        rows[0]["diagnostico"],
-        rows[0]["medicamento"],
-        rows[0]["tratamento"],
-        rows[0]["observacao"],
+        consu["data"],
+        consu["motivo"],
+        consu["diagnostico"],
+        consu["medicamento"],
+        consu["tratamento"],
+        consu["observacao"],
         []
       );
-      const sqlItems = `SELECT *,
-      con.codigo as consulta_codigo
-      from consultas as con
-      inner join funcionarios as fun
-      inner join funcionario_consulta as funcon
-      on con.codigo = funcon.consultaCodgio and fun.cpf = funcon.funcionarioCpf 
+      const sqlItems = `SELECT *, con.codigo as consulta_codigo from consultas as con inner join funcionarios as fun inner join funcionario_consulta as funcon on con.codigo = funcon.consultaCodgio and fun.cpf = funcon.funcionarioCpf where funcon.consultaCodgio = ?;
     `;
       //   const sqlItems = `SELECT * FROM consultas as con INNER JOIN funcionarios as fun INNER JOIN funcionario_consulta as funcon on con.codigo = funcon.consultaCodgio and fun.cpf = funcon.funcionarioCpf
       //   where con.codigo = ?
@@ -104,25 +125,23 @@ export default class ConsultaBD {
       const parametros = [consu["codigo"]];
       const [funcForCons] = await conexao.query(sqlItems, parametros);
       for (const funci in funcForCons) {
-        listaFuncionarios.push(
-          new Funcionario(
-            funcForCons[funci]["cpf"],
-            funcForCons[funci]["nome"],
-            funcForCons[funci]["dataNascimento"],
-            funcForCons[funci]["funcao"],
-            funcForCons[funci]["setor"],
-            funcForCons[funci]["email"],
-            funcForCons[funci]["telefone"],
-            funcForCons[funci]["ocupacao"],
-            funcForCons[funci]["estadoCivil"],
-            funcForCons[funci]["cep"],
-            funcForCons[funci]["dataContratacao"],
-            funcForCons[funci]["sexo"]
-          )
+        const newFunc = new Funcionario(
+          funcForCons[funci]["cpf"],
+          funcForCons[funci]["nome"],
+          funcForCons[funci]["dataNascimento"],
+          funcForCons[funci]["funcao"],
+          funcForCons[funci]["setor"],
+          funcForCons[funci]["email"],
+          funcForCons[funci]["telefone"],
+          funcForCons[funci]["ocupacao"],
+          funcForCons[funci]["estadoCivil"],
+          funcForCons[funci]["cep"],
+          funcForCons[funci]["dataContratacao"],
+          funcForCons[funci]["sexo"]
         );
+        listaFuncionarios.push(newFunc);
       }
-      console.log(listaFuncionarios);
-      consulta.funcionarioCPF = listaFuncionarios;
+      // consulta.funcionarioCPF = listaFuncionarios;
       listaConsultas.push(consulta);
     }
     return listaConsultas;
