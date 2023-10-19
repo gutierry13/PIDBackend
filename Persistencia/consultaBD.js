@@ -144,6 +144,7 @@ INNER JOIN especie AS esp ON ani.especie = esp.codigo and con.clienteCPF = cli.c
       // consulta.funcionarioCPF = listaFuncionarios;
       listaConsultas.push(consulta);
     }
+    global.poolConexoes.releaseConnection(conexao);
     return listaConsultas;
   }
   async consultarPorCodigo(codigo) {
@@ -256,6 +257,7 @@ where funcon.consultaCodgio  like '%${codigo}%'  or con.animalID like '%${codigo
       consulta.funcionarioCPF = listaFuncionarios;
       listaConsultas.push(consulta);
     }
+    global.poolConexoes.releaseConnection(conexao);
     return listaConsultas;
   }
   // async consultarPorCodigo(codigo) {

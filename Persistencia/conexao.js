@@ -16,13 +16,13 @@ export default async function conectar() {
     // password: "njTMBR4Y01wcxju01OxV",
     // database: "backend",
     // port: 3306,
-    // waitForConnections: true,
-    // connectionLimit: 10,
-    // queueLimit: 0,
-    // maxIdle: 10,
-    // idleTimeout: 60000,
-    // enableKeepAlive: true,
-    // keepAliveInitialDelay: 0,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    maxIdle: 10,
+    idleTimeout: 60000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
   });
   global.poolConexoes = poolConexoes;
   return await poolConexoes.getConnection();
