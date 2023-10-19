@@ -148,56 +148,108 @@ INNER JOIN especie AS esp ON ani.especie = esp.codigo and con.clienteCPF = cli.c
   }
   async consultarPorCodigo(codigo) {
     const conexao = await conectar();
-    const sql = `SELECT * FROM consultas as con inner join clientes as cli on cli.cpf = con.clienteCPF where con.codigo = ?;
-   `;
+    const sql = `SELECT DISTINCT
+    con.*, 
+    cli.nome AS nome_cliente,
+    cli.cep AS cep,
+    cli.cpf AS cpf,
+    cli.dtNascimento AS dtNascimento,
+    cli.email AS email,
+    cli.telefone AS telefone,
+    cli.ocupacao AS ocupacao,
+    cli.sexo AS sexo_cliente, 
+    cli.estadoCivil AS estadoCivil, 
+    ani.codigo AS codigo_animal, 
+    ani.nome AS nome_animal, 
+    ani.raca AS raca, 
+    ani.especie AS especie, 
+    ani.sexo AS sexo_animal, 
+    ani.peso AS peso, 
+    ani.idade AS idade, 
+    ani.cor AS cor, 
+    ani.porte AS porte, 
+    ani.saude AS saude, 
+    esp.nome AS nome_especie,
+    esp.codigo AS especie_codigo
+FROM consultas AS con 
+INNER JOIN clientes AS cli 
+INNER JOIN animais AS ani 
+INNER JOIN funcionario_consulta AS funcon
+INNER JOIN especie AS esp 
+INNER JOIN funcionarios AS fun ON
+con.codigo = funcon.consultaCodgio and 
+con.animalID = ani.codigo and 
+ani.especie = esp.codigo and 
+con.clienteCPF = cli.cpf and 
+fun.cpf = funcon.funcionarioCpf 
+where funcon.consultaCodgio  like '%${codigo}%'  or con.animalID like '%${codigo}%' or con.clienteCPF like '%${codigo}%' or funcon.funcionarioCpf like '%${codigo}%'
+`;
+    //   const sql = `SELECT * FROM consultas as con inner join clientes as cli on cli.cpf = con.clienteCPF inner join funcionario_consulta as funcon inner join especie as esp where con.codigo like '%${codigo}%'  or con.animalID like '%${codigo}%' or con.clienteCPF like '%${codigo}%' or funcon.funcionarioCpf like '%${codigo}%';
+    //  `;
+    //   const sql = `SELECT * FROM consultas as con inner join clientes as cli on cli.cpf = con.clienteCPF where con.codigo = ?;
+    //  `;
     const listaConsultas = [];
     const [rows] = await conexao.query(sql, [codigo]);
     for (const consu of rows) {
+      let listaFuncionarios = [];
       const cliente = new Cliente(
-        rows[0]["cpf"],
-        rows[0]["nome"],
-        rows[0]["dtNascimento"],
-        rows[0]["email"],
-        rows[0]["telefone"],
-        rows[0]["ocupacao"],
-        rows[0]["sexo"],
-        rows[0]["estadoCivil"],
-        rows[0]["cep"]
+        consu["cpf"],
+        consu["nome"],
+        consu["dtNascimento"],
+        consu["email"],
+        consu["telefone"],
+        consu["ocupacao"],
+        consu["sexo"],
+        consu["estadoCivil"],
+        consu["cep"]
+      );
+      const especie = new Especie(consu["codigo"], consu["nome_especie"]);
+      const animal = new Animal(
+        consu["animalID"],
+        consu["nome_animal"],
+        consu["raca"],
+        especie,
+        consu["sexo_animal"],
+        consu["peso"],
+        consu["idade"],
+        consu["cor"],
+        consu["porte"],
+        consu["saude"]
       );
       const consulta = new Consulta(
-        rows[0]["codigo"],
-        rows[0]["animalID"],
+        consu["codigo"],
+        animal,
         cliente,
-        rows[0]["funcionarioCPF"],
-        rows[0]["data"],
-        rows[0]["motivo"],
-        rows[0]["diagnostico"],
-        rows[0]["medicamento"],
-        rows[0]["tratamento"],
-        rows[0]["observacao"],
+        listaFuncionarios,
+        consu["data"],
+        consu["motivo"],
+        consu["diagnostico"],
+        consu["medicamento"],
+        consu["tratamento"],
+        consu["observacao"],
         []
       );
-      const sqlItems = `SELECT * FROM consultas as con INNER JOIN animais as ani INNER JOIN funcionarios as fun INNER JOIN funcionario_consulta as funcon on con.codigo = funcon.consultaCodgio and fun.cpf = con.funcionarioCPF and ani.codigo = con.animalID
-      where con.codigo = ?
-    `;
+      const sqlItems = `SELECT *, con.codigo as consulta_codigo from consultas as con inner join funcionarios as fun inner join funcionario_consulta as funcon on con.codigo = funcon.consultaCodgio and fun.cpf = funcon.funcionarioCpf where funcon.consultaCodgio = ?;`;
+      //   const sqlItems = `SELECT * FROM consultas as con INNER JOIN animais as ani INNER JOIN funcionarios as fun INNER JOIN funcionario_consulta as funcon on con.codigo = funcon.consultaCodgio and fun.cpf = con.funcionarioCPF and ani.codigo = con.animalID
+      //   where con.codigo = ?
+      // `;
       const parametros = [consu["codigo"]];
-      let listaFuncionarios = [];
       const [funcForCons] = await conexao.query(sqlItems, parametros);
-      for (const funci of funcForCons) {
+      for (const funci in funcForCons) {
         listaFuncionarios.push(
           new Funcionario(
-            funcForCons[0]["cpf"],
-            funcForCons[0]["nome"],
-            funcForCons[0]["dataNascimento"],
-            funcForCons[0]["funcao"],
-            funcForCons[0]["setor"],
-            funcForCons[0]["email"],
-            funcForCons[0]["telefone"],
-            funcForCons[0]["ocupacao"],
-            funcForCons[0]["estadoCivil"],
-            funcForCons[0]["cep"],
-            funcForCons[0]["dataContratacao"],
-            funcForCons[0]["sexo"]
+            funcForCons[funci]["cpf"],
+            funcForCons[funci]["nome"],
+            funcForCons[funci]["dataNascimento"],
+            funcForCons[funci]["funcao"],
+            funcForCons[funci]["setor"],
+            funcForCons[funci]["email"],
+            funcForCons[funci]["telefone"],
+            funcForCons[funci]["ocupacao"],
+            funcForCons[funci]["estadoCivil"],
+            funcForCons[funci]["cep"],
+            funcForCons[funci]["dataContratacao"],
+            funcForCons[funci]["sexo"]
           )
         );
       }
@@ -267,58 +319,58 @@ INNER JOIN especie AS esp ON ani.especie = esp.codigo and con.clienteCPF = cli.c
       global.poolConexoes.releaseConnection(conexao);
     }
   }
-  async consultarComFuncionario(codigoConsulta) {
-    const conexao = await conectar();
-    const sql = `
-      SELECT
-        c.codigo,
-        c.animalID,
-        c.clienteCPF,
-        c.data,
-        c.motivo,
-        c.medicamento,
-        c.diagnostico,
-        c.tratamento,
-        c.observacao,
-        f.nome AS funcionario_nome,
-        f.cpf AS funcionario_cpf,
-        f.funcao AS funcionario_funcao,
-        f.setor AS funcionario_setor,
-        f.ocupacao AS funcionario_ocupacao
-      FROM consultas c
-      INNER JOIN funcionario f ON c.funcionarioCPF = f.cpf
-      WHERE c.codigo = ?`;
+  // async consultarComFuncionario(codigoConsulta) {
+  //   const conexao = await conectar();
+  //   const sql = `
+  //     SELECT
+  //       c.codigo,
+  //       c.animalID,
+  //       c.clienteCPF,
+  //       c.data,
+  //       c.motivo,
+  //       c.medicamento,
+  //       c.diagnostico,
+  //       c.tratamento,
+  //       c.observacao,
+  //       f.nome AS funcionario_nome,
+  //       f.cpf AS funcionario_cpf,
+  //       f.funcao AS funcionario_funcao,
+  //       f.setor AS funcionario_setor,
+  //       f.ocupacao AS funcionario_ocupacao
+  //     FROM consultas c
+  //     INNER JOIN funcionario f ON c.funcionarioCPF = f.cpf
+  //     WHERE c.codigo = ?`;
 
-    const valores = [codigoConsulta];
-    const [rows] = await conexao.query(sql, valores);
-    global.poolConexoes.releaseConnection(conexao);
+  //   const valores = [codigoConsulta];
+  //   const [rows] = await conexao.query(sql, valores);
+  //   global.poolConexoes.releaseConnection(conexao);
 
-    if (rows.length > 0) {
-      // Crie o objeto JSON personalizado
-      const row = rows[0];
-      const consulta = {
-        codigo: row["codigo"],
-        animalID: row["animalID"],
-        clienteCPF: row["clienteCPF"],
-        data: row["data"],
-        motivo: row["motivo"],
-        medicamento: row["medicamento"],
-        diagnostico: row["diagnostico"],
-        tratamento: row["tratamento"],
-        observacao: row["observacao"],
-        funcionario: {
-          nome: row["funcionario_nome"],
-          cpf: row["funcionario_cpf"],
-          funcao: row["funcionario_funcao"],
-          setor: row["funcionario_setor"],
-          ocupacao: row["funcionario_ocupacao"],
-        },
-      };
-      return consulta;
-    } else {
-      return null; // Consulta não encontrada
-    }
-  }
+  //   if (rows.length > 0) {
+  //     // Crie o objeto JSON personalizado
+  //     const row = rows[0];
+  //     const consulta = {
+  //       codigo: row["codigo"],
+  //       animalID: row["animalID"],
+  //       clienteCPF: row["clienteCPF"],
+  //       data: row["data"],
+  //       motivo: row["motivo"],
+  //       medicamento: row["medicamento"],
+  //       diagnostico: row["diagnostico"],
+  //       tratamento: row["tratamento"],
+  //       observacao: row["observacao"],
+  //       funcionario: {
+  //         nome: row["funcionario_nome"],
+  //         cpf: row["funcionario_cpf"],
+  //         funcao: row["funcionario_funcao"],
+  //         setor: row["funcionario_setor"],
+  //         ocupacao: row["funcionario_ocupacao"],
+  //       },
+  //     };
+  //     return consulta;
+  //   } else {
+  //     return null; // Consulta não encontrada
+  //   }
+  // }
   async alterar(consulta) {
     const conexao = await conectar();
     if (consulta instanceof Consulta) {
@@ -348,11 +400,16 @@ INNER JOIN especie AS esp ON ani.especie = esp.codigo and con.clienteCPF = cli.c
     }
   }
 
-  async excluir(codigo) {
+  async excluir(consulta) {
     const conexao = await conectar();
-    const sql = "DELETE FROM consultas WHERE codigo=?";
+    const { codigo } = consulta;
+    // console.log(codigo);
+    const sql = "DELETE FROM funcionario_consulta WHERE consultaCodgio=?";
     const valores = [codigo];
     await conexao.query(sql, valores);
+    const sql2 = "DELETE FROM consultas WHERE codigo=?";
+    const val = [codigo];
+    await conexao.query(sql2, val);
     global.poolConexoes.releaseConnection(conexao);
   }
 }
